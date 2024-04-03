@@ -1,16 +1,18 @@
+
 import pandas as pd
 
-def preprocess_data(df, relevant_columns=None):
+def preprocess_data(df, relevant_columns=None, drop_duplicates=True):
     """
-    Preprocess the given DataFrame by filtering relevant columns, checking for missing values, and cleaning the data.
+    Preprocess the given DataFrame by filtering relevant columns, checking for missing values, cleaning the data, and dropping duplicates.
 
     Parameters:
     df (DataFrame): The data frame to preprocess.
-    relevant_columns (list): A list of column names to keep in the DataFrame.
+    relevant_columns (list, optional): A list of column names to keep in the DataFrame.
+    drop_duplicates (bool, optional): Indicates whether to drop duplicate rows.
 
     Returns:
-    DataFrame: A cleaned DataFrame with relevant columns and no missing cdr3 sequences.
-    dict: A report dictionary with information on missing values and unique values in the DataFrame.
+    DataFrame: A cleaned DataFrame with relevant columns, no missing cdr3 sequences, and no duplicates.
+    dict: A report dictionary with information on missing values, unique values, and duplicate rows in the DataFrame.
     """
     if relevant_columns is None:
         relevant_columns = [
@@ -29,21 +31,28 @@ def preprocess_data(df, relevant_columns=None):
 
     # Removing rows with missing cdr3 sequences
     df_cleaned = filtered_data.dropna(subset=['cdr3.alpha', 'cdr3.beta'])
+
+    # Dropping duplicates if specified
+    if drop_duplicates:
+        df_cleaned = df_cleaned.drop_duplicates()
+        duplicates_dropped = True
+    else:
+        duplicates_dropped = False
+
     df_cleaned.reset_index(drop=True, inplace=True)
     
     # Creating a report dictionary
     report = {
         "Missing Values": missing_values,
-        "Unique Values": unique_values
+        "Unique Values": unique_values,
+        "Duplicates Dropped": duplicates_dropped
     }
 
     return df_cleaned, report
 
-# Usage example:
-# Assuming 'df' is your DataFrame containing the raw data
-df_cleaned, report = preprocess_data(df)
-print(df_cleaned.head())  # Displays the first few rows of the cleaned DataFrame
-print(report)  # Prints out the report of missing and unique values
+
+
+
 
 
 
