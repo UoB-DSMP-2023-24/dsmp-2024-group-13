@@ -41,14 +41,9 @@ def preprocess_data(df, relevant_columns=None, drop_duplicates=True):
 
     df_cleaned.reset_index(drop=True, inplace=True)
     
-    # Creating a report dictionary
-    report = {
-        "Missing Values": missing_values,
-        "Unique Values": unique_values,
-        "Duplicates Dropped": duplicates_dropped
-    }
 
-    return df_cleaned, report
+
+    return df_cleaned
 
 
 
