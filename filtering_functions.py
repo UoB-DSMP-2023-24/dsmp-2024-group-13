@@ -1,3 +1,52 @@
+import pandas as pd
+
+def preprocess_data(df, relevant_columns=None):
+    """
+    Preprocess the given DataFrame by filtering relevant columns, checking for missing values, and cleaning the data.
+
+    Parameters:
+    df (DataFrame): The data frame to preprocess.
+    relevant_columns (list): A list of column names to keep in the DataFrame.
+
+    Returns:
+    DataFrame: A cleaned DataFrame with relevant columns and no missing cdr3 sequences.
+    dict: A report dictionary with information on missing values and unique values in the DataFrame.
+    """
+    if relevant_columns is None:
+        relevant_columns = [
+            'cdr3.alpha', 'v.alpha', 'j.alpha', 'cdr3.beta', 'v.beta', 'd.beta', 'j.beta',
+            'species', 'mhc.a', 'mhc.b', 'antigen.gene', 'antigen.epitope', 'vdjdb.score', 'mhc.class'
+        ]
+
+    # Filtering the DataFrame to keep only relevant columns
+    filtered_data = df[relevant_columns]
+
+    # Checking for missing values in crucial columns
+    missing_values = filtered_data.isnull().sum()
+
+    # Examining the number of unique values in categorical columns for potential encoding strategies
+    unique_values = filtered_data.nunique()
+
+    # Removing rows with missing cdr3 sequences
+    df_cleaned = filtered_data.dropna(subset=['cdr3.alpha', 'cdr3.beta'])
+    df_cleaned.reset_index(drop=True, inplace=True)
+    
+    # Creating a report dictionary
+    report = {
+        "Missing Values": missing_values,
+        "Unique Values": unique_values
+    }
+
+    return df_cleaned, report
+
+# Usage example:
+# Assuming 'df' is your DataFrame containing the raw data
+df_cleaned, report = preprocess_data(df)
+print(df_cleaned.head())  # Displays the first few rows of the cleaned DataFrame
+print(report)  # Prints out the report of missing and unique values
+
+
+
 def filter_by_length_range(df, column_name):
     """
     Asks the user for length bounds and filters the DataFrame to include rows where the length of
