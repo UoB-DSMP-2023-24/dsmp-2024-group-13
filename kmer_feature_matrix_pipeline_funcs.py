@@ -13,7 +13,7 @@ from sklearn.cross_decomposition import CCA
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.feature_selection import SelectKBest, chi2
 import warnings
-
+from sklearn.metrics import classification_report, confusion_matrix
 
 # Function to generate k-mers from a single sequence
 def generate_kmers(sequence, k):
@@ -142,6 +142,8 @@ def _cal_roc_auc(y_test, y_score, y_pred, epi_list, draw_roc_curve=True, title="
 def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC curves"):
     auc_dict = {}
     acc_list, precision_list, recall_list = [], [], []
+    all_conf_matrices = []
+    all_class_reports = []
     skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=666)
     cur_fold = 1
     for train_index, test_index in skf.split(X, y):
@@ -159,13 +161,27 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
         y_prob = clf.predict_proba(X_test)
         y_pred = clf.predict(X_test)
 
+        # Save classification report and confusion matrix
+        class_report = classification_report(y_test, y_pred, target_names=epi_list, output_dict=True)
+        conf_matrix = confusion_matrix(y_test, y_pred)
+        all_class_reports.append(class_report)
+        all_conf_matrices.append(conf_matrix)
+
         auc_dict[cur_fold], precision, recall = _cal_roc_auc(y_test, y_prob, y_pred, epi_list, draw_roc_curve)
 
         precision_list.append(precision)
         recall_list.append(recall)
         cur_fold += 1
 
-    return auc_dict, acc_list, precision_list, recall_list
+    # Optionally, plot the confusion matrix of the last fold
+    plt.figure(figsize=(10, 7))
+    sns.heatmap(all_conf_matrices[-1], annot=True, fmt="d", xticklabels=epi_list, yticklabels=epi_list)
+    plt.title("Confusion Matrix")
+    plt.ylabel('Actual Class')
+    plt.xlabel('Predicted Class')
+    plt.show()
+
+    return auc_dict, acc_list, precision_list, recall_list, all_class_reports, all_conf_matrices, clf
 
 
 def pca_analyse(X_train, X_test, rate=0.9):
@@ -173,3 +189,30 @@ def pca_analyse(X_train, X_test, rate=0.9):
     pca = PCA(n_components=rate).fit(X_train)
     return pca.transform(X_train), pca.transform(X_test)
 
+def plot_feature_importance(classifier, feature_names, top_n=20):
+    # Get feature importances from the classifier
+    importances = classifier.feature_importances_
+    
+    # Create a list of tuples (feature_name, importance)
+    feature_importance = list(zip(feature_names, importances))
+    
+    # Sort the feature importances by most important first
+    feature_importance = sorted(feature_importance, key=lambda x: x[1], reverse=True)
+    
+    # Taking the top n features
+    top_features = feature_importance[:top_n]
+    features, scores = zip(*top_features)
+    
+    # Plotting
+    y_pos = np.arange(len(features))
+    plt.barh(y_pos, scores, align='center', alpha=0.5)
+    plt.yticks(y_pos, features)
+    plt.xlabel('Importance')
+    plt.title('Top {} Feature Importances'.format(top_n))
+    plt.gca().invert_yaxis()  # Invert the Y-axis to show the highest value at the top
+    plt.show()
+
+""" example usage"""
+
+"""auc_result, acc, precision, recall, class_reports, conf_matrices,clf = predict_auc(X, y, rf_classifier, 2, epitope_names, True)"""
+"""plot_feature_importance(clf, feature_names)"""
