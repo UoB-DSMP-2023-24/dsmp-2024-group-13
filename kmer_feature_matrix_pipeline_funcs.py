@@ -145,6 +145,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
     all_conf_matrices = []
     all_class_reports = []
     misclassified_instances = []
+    misclassified_details = []
     skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=666)
     cur_fold = 1
     for train_index, test_index in skf.split(X, y):
@@ -161,6 +162,10 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
 
         y_prob = clf.predict_proba(X_test)
         y_pred = clf.predict(X_test)
+
+        for idx, (true_label, pred_label) in enumerate(zip(y_test, y_pred)):
+            if true_label != pred_label:
+                misclassified_details.append((test_index[idx], true_label, pred_label))
 
         # Save classification report and confusion matrix
         class_report = classification_report(y_test, y_pred, target_names=epi_list, output_dict=True)
@@ -186,7 +191,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
     plt.xlabel('Predicted Class')
     plt.show()
 
-    return auc_dict, acc_list, precision_list, recall_list, all_class_reports, all_conf_matrices, clf, misclassified_instances
+    return auc_dict, acc_list, precision_list, recall_list, all_class_reports, all_conf_matrices, clf, misclassified_instances, misclassified_details
 
 
 def pca_analyse(X_train, X_test, rate=0.9):
