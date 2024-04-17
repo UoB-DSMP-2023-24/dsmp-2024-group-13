@@ -144,6 +144,31 @@ def filter_by_mhc_class(df, column='mhc.class'):
     
     return filtered_df
 
+
+def filter_by_epitope_instances(df, label_col='antigen.epitope', min_instances=1):
+    """
+    Filter the DataFrame based on the number of instances for each unique epitope.
+
+    Parameters:
+    - df: pandas DataFrame containing your data.
+    - label_col: The name of the column containing the epitope labels.
+    - min_instances: The minimum number of instances required for an epitope to be retained.
+
+    Returns:
+    - A filtered pandas DataFrame where each epitope has at least `min_instances` instances.
+    """
+    # Count the number of instances for each unique epitope
+    counts = df[label_col].value_counts()
+    
+    # Filter for epitopes that meet or exceed the minimum instance requirement
+    valid_epitopes = counts[counts >= min_instances].index
+    
+    # Filter the DataFrame to only include rows with the valid epitopes
+    filtered_df = df[df[label_col].isin(valid_epitopes)]
+    
+    return filtered_df
+
+
 """
 example usage:
 
