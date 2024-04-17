@@ -175,7 +175,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
         # Track misclassified instances
         mis_indices = test_index[np.where(y_test != y_pred)]
         misclassified_instances.extend(mis_indices)
-        cur_fold += 1
+ 
         cur_fold += 1
 
     # Optionally, plot the confusion matrix of the last fold
@@ -186,7 +186,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
     plt.xlabel('Predicted Class')
     plt.show()
 
-    return auc_dict, acc_list, precision_list, recall_list, all_class_reports, all_conf_matrices, clf
+    return auc_dict, acc_list, precision_list, recall_list, all_class_reports, all_conf_matrices, clf, misclassified_instances
 
 
 def pca_analyse(X_train, X_test, rate=0.9):
