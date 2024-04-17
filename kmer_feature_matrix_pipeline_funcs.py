@@ -110,6 +110,36 @@ def _plot_roc_curves(fpr, tpr, roc_auc, epi_list, title):
     plt.legend(loc='lower right')
     plt.show()
 
+def _plot_roc_curves_mean_only(fpr, tpr, roc_auc, epi_list, title):
+    """Plot only the mean ROC curve."""
+    mean_fpr = np.linspace(0, 1, 200)
+    tprs = []
+    aucs = []
+
+    # Calculate mean and standard deviation of TPRs for all epitopes
+    for i in range(len(epi_list)):
+        tprs.append(np.interp(mean_fpr, fpr[i], tpr[i]))
+        tprs[-1][0] = 0.0
+        aucs.append(roc_auc[i])
+
+    mean_tpr = np.mean(tprs, axis=0)
+    mean_tpr[-1] = 1.0
+    mean_auc = auc(mean_fpr, mean_tpr)
+    std_tpr = np.std(tprs, axis=0)
+
+    # Plotting only the mean ROC curve
+    plt.plot(mean_fpr, mean_tpr, color='b', label=f'Mean ROC (AUC = {round(mean_auc, 3)})', lw=2, alpha=0.8)
+    plt.fill_between(mean_fpr, mean_tpr - std_tpr, mean_tpr + std_tpr, color='gray', alpha=0.2)
+    plt.plot([0, 1], [0, 1], linestyle='--', lw=2, color='r', alpha=0.5)
+    
+    plt.xlim([-0.05, 1.05])
+    plt.ylim([-0.05, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title(title)
+    plt.legend(loc='lower right')
+    plt.show()
+
 
 def _cal_roc_auc(y_test, y_score, y_pred, epi_list, draw_roc_curve=True, title="ROC curves"):
     """"Calculate the AUROC value and draw the ROC curve."""
@@ -134,7 +164,7 @@ def _cal_roc_auc(y_test, y_score, y_pred, epi_list, draw_roc_curve=True, title="
 
     # plot all ROC curves
     if draw_roc_curve:
-        _plot_roc_curves(fpr, tpr, roc_auc, epi_list, title)
+        _plot_roc_curves_mean_only(fpr, tpr, roc_auc, epi_list, title)
 
     return roc_auc, np.mean(precision), np.mean(recall)
 
