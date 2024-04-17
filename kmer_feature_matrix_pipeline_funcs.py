@@ -61,7 +61,7 @@ def create_features_matrix(df, include_alpha=True, include_beta=True, alpha_col=
     feature_names = vectorizer.get_feature_names_out()
     epitope_names = list(epitope_to_int.keys())
     # Return the adjusted outputs
-    return X, y, feature_names, kmer_count_dict, epitope_names
+    return X, y, feature_names, kmer_count_dict, epitope_names, epitope_to_int
 
 def _cal_micro_ROC(y_test, y_score):
     """Calculate the micro ROC value"""
