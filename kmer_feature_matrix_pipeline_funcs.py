@@ -144,6 +144,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
     acc_list, precision_list, recall_list = [], [], []
     all_conf_matrices = []
     all_class_reports = []
+    misclassified_instances = []
     skf = StratifiedKFold(n_splits=cv, shuffle=True, random_state=666)
     cur_fold = 1
     for train_index, test_index in skf.split(X, y):
@@ -171,6 +172,10 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
 
         precision_list.append(precision)
         recall_list.append(recall)
+        # Track misclassified instances
+        mis_indices = test_index[np.where(y_test != y_pred)]
+        misclassified_instances.extend(mis_indices)
+        cur_fold += 1
         cur_fold += 1
 
     # Optionally, plot the confusion matrix of the last fold
