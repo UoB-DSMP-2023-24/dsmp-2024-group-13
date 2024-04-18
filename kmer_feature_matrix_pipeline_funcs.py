@@ -215,7 +215,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
 
     # Optionally, plot the confusion matrix of the last fold
     plt.figure(figsize=(10, 7))
-    sns.heatmap(all_conf_matrices[-1], annot=True, fmt="d", xticklabels=epi_list, yticklabels=epi_list)
+    sns.heatmap(all_conf_matrices[0], annot=True, fmt="d", xticklabels=epi_list, yticklabels=epi_list)
     plt.title("Confusion Matrix")
     plt.ylabel('Actual Class')
     plt.xlabel('Predicted Class')
