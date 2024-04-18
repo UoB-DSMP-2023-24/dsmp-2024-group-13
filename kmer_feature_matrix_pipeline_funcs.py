@@ -252,7 +252,74 @@ def plot_feature_importance(classifier, feature_names, top_n=20):
     plt.gca().invert_yaxis()  # Invert the Y-axis to show the highest value at the top
     plt.show()
 
+
+
+def calculate_class_stats(X, y, feature_names):
+    """ Calculate statistics for each feature across all classes for one-vs-all. """
+    unique_classes = np.unique(y)
+    stats = {}
+    for cls in unique_classes:
+        class_index = y == cls
+        non_class_index = ~class_index
+        stats[cls] = {
+            'mean': np.mean(X[class_index], axis=0),
+            'var': np.var(X[class_index], axis=0) + 1e-6,  # Avoid division by zero
+            'mean_non_class': np.mean(X[non_class_index], axis=0),
+            'var_non_class': np.var(X[non_class_index], axis=0) + 1e-6
+        }
+    return stats
+
+def compute_1_DBC_scores(stats):
+    """ Compute 1-DBC scores for each feature across all classes. """
+    scores = {}
+    for cls, data in stats.items():
+        score = (data['mean'] - data['mean_non_class']) / (data['var'] + data['var_non_class'])
+        scores[cls] = score
+    return scores
+
+def select_features(X, feature_names, scores, top_k=50):
+    """ Select top features based on 1-DBC scores for all classes and return feature details. """
+    all_top_indices = set()
+    top_features = {}
+    for cls, cls_scores in scores.items():
+        top_indices = np.argsort(-np.abs(cls_scores))[:top_k]
+        all_top_indices.update(top_indices)
+        # Save the top features for this class
+        top_features[cls] = {
+            'indices': top_indices,
+            'names': [feature_names[i] for i in top_indices],
+            'scores': cls_scores[top_indices]
+        }
+    # Filter X for selected indices
+    X_selected = X[:, list(all_top_indices)]
+    return X_selected, top_features
+
+def plot_top_features(top_features, class_labels):
+    """ Plot the top features for each class. """
+    for cls in class_labels:
+        features = top_features[cls]
+        # Create a DataFrame for easier plotting
+        df = pd.DataFrame({
+            'Feature': features['names'],
+            'Score': features['scores']
+        })
+        df.sort_values(by='Score', ascending=False, inplace=True)
+        
+        # Plotting
+        plt.figure(figsize=(10, 8))
+        sns.barplot(x='Score', y='Feature', data=df.head(20))  # Show top 20 features
+        plt.title(f'Top Features for Class {cls}')
+        plt.xlabel('1-DBC Score')
+        plt.ylabel('K-mer')
+        plt.show()
+
 """ example usage"""
 
+"""X, y, feature_names, kmer_count_dict, epitope_names, epitope_to_int = create_features_matrix(filtered_df, include_alpha=False, include_beta=True, alpha_col='cdr3.alpha', beta_col='cdr3.beta', label_col='antigen.epitope', k=3)
+class_stats = calculate_class_stats(X, y, feature_names)
+scores = compute_1_DBC_scores(class_stats)
+X_selected, top_features = select_features(X, feature_names, scores, top_k=50)
+
+plot_top_features(top_features, np.unique(y))"""
 """auc_result, acc, precision, recall, class_reports, conf_matrices,clf = predict_auc(X, y, rf_classifier, 2, epitope_names, True)"""
 """plot_feature_importance(clf, feature_names)"""
