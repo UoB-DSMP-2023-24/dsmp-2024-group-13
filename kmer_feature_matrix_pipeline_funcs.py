@@ -183,7 +183,7 @@ def predict_auc(X, y, classifier, cv, epi_list, draw_roc_curve=True, title="ROC 
         X_train, X_test = X[train_index], X[test_index]
         y_train, y_test = y[train_index], y[test_index]
 
-        X_train, X_test = pca_analyse(X_train, X_test, 0.9)
+        #X_train, X_test = pca_analyse(X_train, X_test, 0.9)
 
         clf = clone(classifier)
         clf.fit(X_train, y_train)
