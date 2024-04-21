@@ -15,10 +15,9 @@ from sklearn.feature_selection import SelectKBest, chi2
 import warnings
 from sklearn.metrics import classification_report, confusion_matrix
 
-# Function to generate k-mers from a single sequence
 def generate_kmers(sequence, k):
-    return [sequence[i:i+k] for i in range(len(sequence)-k+1)]
-
+    """Generate k-mers along with their starting positions."""
+    return [(sequence[i:i+k], i) for i in range(len(sequence)-k+1)]
 
 
 def create_features_matrix(df, include_alpha=True, include_beta=True, alpha_col='cdr3.alpha', beta_col='cdr3.beta', label_col='antigen.epitope', k=3):
@@ -34,10 +33,10 @@ def create_features_matrix(df, include_alpha=True, include_beta=True, alpha_col=
         kmers = []
         if include_alpha and pd.notna(row[alpha_col]):
             alpha_seq = row[alpha_col]
-            kmers += generate_kmers(alpha_seq, k)
+            kmers += [f"{kmer}_{pos}" for kmer, pos in generate_kmers(alpha_seq, k)]
         if include_beta and pd.notna(row[beta_col]):
             beta_seq = row[beta_col]
-            kmers += generate_kmers(beta_seq, k)
+            kmers += [f"{kmer}_{pos}" for kmer, pos in generate_kmers(beta_seq, k)]
         
         # Concatenate k-mers into a single string for vectorization
         kmer_docs.append(' '.join(kmers))
